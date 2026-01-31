@@ -279,7 +279,7 @@ async function upsertRecoveryData(
         traffic_light: trafficLight,
         raw_data: recovery,
       },
-      { onConflict: 'whoop_id' }
+      { onConflict: 'user_id,date' }
     );
 
     if (error) {
@@ -330,7 +330,7 @@ async function upsertSleepData(sleepRecords: WhoopSleep[]): Promise<number> {
         respiratory_rate: score.respiratory_rate,
         raw_data: sleep,
       },
-      { onConflict: 'whoop_id' }
+      { onConflict: 'user_id,date' }
     );
 
     if (error) {
@@ -424,7 +424,7 @@ async function upsertCycleData(cycles: WhoopCycle[]): Promise<number> {
         max_hr: score.max_heart_rate,
         raw_data: cycle,
       },
-      { onConflict: 'whoop_id' }
+      { onConflict: 'user_id,date' }
     );
 
     if (error) {

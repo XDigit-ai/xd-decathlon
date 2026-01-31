@@ -49,23 +49,24 @@ export function StatusCard({
   };
 
   return (
-    <Card className={cn("relative overflow-hidden", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+    <Card className={cn("group relative overflow-hidden", className)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-sm font-semibold text-muted-foreground">{title}</CardTitle>
+        <div className="rounded-lg bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
-          <div className="text-2xl font-bold">{value}</div>
-          <p className="text-xs text-muted-foreground">{label}</p>
+        <div className="space-y-2">
+          <div className="text-3xl font-bold tracking-tight">{value}</div>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
-          {/* Sparkline placeholder */}
-          <div className="mt-3 h-12 w-full">
+          <div className="mt-4 h-12 w-full">
             <div className="flex h-full items-end gap-1">
               {Array.from({ length: 12 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex-1 rounded-sm bg-primary/20"
+                  className="flex-1 rounded-t-sm bg-gradient-to-t from-primary/30 to-primary/10 transition-all duration-300 group-hover:from-primary/40 group-hover:to-primary/20"
                   style={{
                     height: `${Math.random() * 100}%`,
                   }}
@@ -74,11 +75,10 @@ export function StatusCard({
             </div>
           </div>
 
-          {/* Trend indicator */}
           {trend && (
-            <div className="flex items-center gap-1 pt-2">
+            <div className="flex items-center gap-1.5 pt-2">
               {getTrendIcon()}
-              <span className={cn("text-xs font-medium", getTrendColor())}>
+              <span className={cn("text-xs font-semibold", getTrendColor())}>
                 {trend.value > 0 ? "+" : ""}
                 {trend.value}%
               </span>

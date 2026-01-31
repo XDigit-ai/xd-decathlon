@@ -119,7 +119,7 @@ export default async function ReviewsPage() {
               {reviews.map((review) => (
                 <li key={review.id}>
                   <Link
-                    href={`/reviews/${review.type}/${review.id}`}
+                    href={`/routines/reviews/${review.type}/${review.id}`}
                     className="block hover:bg-gray-50"
                   >
                     <div className="px-4 py-4 sm:px-6">
