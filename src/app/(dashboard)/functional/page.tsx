@@ -1,6 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { BenchmarkGrid } from '@/components/functional/benchmark-grid';
-import { redirect } from 'next/navigation';
 
 interface FunctionalTest {
   id: string;
@@ -101,17 +100,9 @@ function initializeEmptyGroups(): Record<string, BenchmarkGroup> {
 }
 
 export default async function FunctionalFitnessPage() {
-  const supabase = await createClient();
+  const userId = DEV_USER_ID;
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    redirect('/login');
-  }
-
-  const groupedData = await getFunctionalData(session.user.id);
+  const groupedData = await getFunctionalData(userId);
 
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">

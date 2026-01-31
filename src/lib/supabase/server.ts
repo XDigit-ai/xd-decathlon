@@ -1,5 +1,10 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+
+// Hardcoded user ID for development — bypasses auth checks
+// TODO: Remove when Supabase Auth is wired up
+export const DEV_USER_ID = '0e8cc399-f19b-4dae-9eff-80e1ef81b875';
+
 export async function createClient() {
   const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

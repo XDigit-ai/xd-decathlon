@@ -147,7 +147,7 @@ export class HevyClient {
     let totalPages = 1;
 
     while (currentPage <= totalPages) {
-      const response = await this.getWorkouts(currentPage, 50); // Use larger page size
+      const response = await this.getWorkouts(currentPage, 10); // Use larger page size
       allWorkouts.push(...response.workouts);
 
       totalPages = response.page_count;
@@ -174,7 +174,7 @@ export class HevyClient {
     let totalPages = 1;
 
     while (currentPage <= totalPages) {
-      const response = await this.getExerciseTemplates(currentPage, 50);
+      const response = await this.getExerciseTemplates(currentPage, 10);
       allTemplates.push(...response.exercise_templates);
 
       totalPages = response.page_count;
@@ -199,7 +199,7 @@ export class HevyClient {
     let shouldContinue = true;
 
     while (shouldContinue) {
-      const response = await this.getWorkouts(currentPage, 50);
+      const response = await this.getWorkouts(currentPage, 10);
 
       for (const workout of response.workouts) {
         const workoutDate = new Date(workout.start_time);

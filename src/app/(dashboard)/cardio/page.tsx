@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { DEV_USER_ID } from '@/lib/supabase/server';
 
 // TODO: Define proper types for cardio data
 interface CardioData {
@@ -22,15 +22,7 @@ async function getCardioData(): Promise<CardioData> {
 }
 
 export default async function CardioPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   const cardioData = await getCardioData();
 

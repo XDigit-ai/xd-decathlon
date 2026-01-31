@@ -1,32 +1,30 @@
 {
-  "name": "Decathlon",
+  "name": "decathlon",
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "NODE_VERSION": "22"
+    }
   },
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers-extra/features/supabase-cli:1": {}
-  },
-  "forwardPorts": [3000],
-  "postCreateCommand": "npm install",
-  "postStartCommand": "echo '✅ Decathlon sandbox ready — $(git config user.email)'",
-  "containerEnv": {
-    "PROJECT_NAME": "decathlon",
-    "SUPABASE_PROJECT_ID": "ymudzmawcwkoubiqfjbt"
-  },
-  "mounts": [
-    "source=${localWorkspaceFolder}/.env.local,target=/workspace/.env.local,type=bind",
-    "source=decathlon-node-modules,target=/workspace/node_modules,type=volume"
+  "runArgs": [
+    "--env-file", "/Users/ak/.pm/credentials/decathlon.env",
+    "--hostname", "decathlon"
   ],
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss"
+        "esbenp.prettier-vscode"
       ]
     }
   },
+  "forwardPorts": [3000, 5173, 8080],
+  "postCreateCommand": "bash -c 'if [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install; elif [ -f yarn.lock ]; then yarn; elif [ -f bun.lockb ]; then npm i -g bun && bun install; elif [ -f package.json ]; then npm install; fi && echo \"Container ready.\"'",
+  "postStartCommand": "bash -c 'if [ -n \"$GH_TOKEN\" ]; then echo \"$GH_TOKEN\" | gh auth login --with-token 2>/dev/null && gh auth setup-git; fi'",
   "remoteUser": "node"
 }

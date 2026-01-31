@@ -1,39 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 /**
  * GET /api/auth/whoop
  *
- * Initiates Whoop OAuth flow
- * TODO: Generate OAuth state parameter for CSRF protection
- * TODO: Store state in session/cookie
- * TODO: Redirect to Whoop authorization URL with client_id, redirect_uri, scope
- * TODO: Scopes needed: read:recovery, read:sleep, read:workout, read:profile
+ * Initiates the Whoop OAuth 2.0 authorization flow.
+ * Generates a CSRF state parameter, stores it in an HTTP-only cookie,
+ * and redirects the user to Whoop's authorization page.
+ *
+ * Required scopes: read:recovery read:sleep read:workout read:cycles read:profile
  */
 export async function GET(request: NextRequest) {
   try {
     const whoopClientId = process.env.WHOOP_CLIENT_ID;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/whoop/callback`;
+    const redirectUri =
+      process.env.NEXT_PUBLIC_WHOOP_REDIRECT_URI ||
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/whoop/callback`;
 
     if (!whoopClientId) {
       return NextResponse.json(
-        { error: 'Whoop OAuth not configured' },
+        { error: 'Whoop OAuth not configured. Missing WHOOP_CLIENT_ID.' },
         { status: 500 }
       );
     }
 
-    // TODO: Generate and store state parameter for security
+    // Generate a cryptographically random state parameter for CSRF protection
     const state = crypto.randomUUID();
 
-    // TODO: Store state in session or encrypted cookie
+    // Store state in an HTTP-only cookie so we can verify it in the callback
+    const cookieStore = await cookies();
+    cookieStore.set('whoop_oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 600, // 10 minutes
+      path: '/',
+    });
 
     const scopes = [
       'read:recovery',
       'read:sleep',
       'read:workout',
+      'read:cycles',
       'read:profile',
     ].join(' ');
 
-    const authUrl = new URL('https://api.whoop.com/oauth/oauth2/auth');
+    const authUrl = new URL('https://api.prod.whoop.com/oauth/oauth2/auth');
     authUrl.searchParams.set('client_id', whoopClientId);
     authUrl.searchParams.set('redirect_uri', redirectUri);
     authUrl.searchParams.set('response_type', 'code');
@@ -42,9 +54,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(authUrl.toString());
   } catch (error) {
-    console.error('Whoop OAuth initiation error:', error);
+    console.error('[Whoop OAuth] Initiation error:', error);
     return NextResponse.json(
-      { error: 'Failed to initiate OAuth' },
+      { error: 'Failed to initiate Whoop OAuth flow' },
       { status: 500 }
     );
   }

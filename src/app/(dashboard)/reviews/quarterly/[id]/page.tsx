@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { DEV_USER_ID } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 
 interface QuarterlyReviewPageProps {
@@ -44,15 +44,7 @@ async function getQuarterlyReview(id: string): Promise<QuarterlyReview | null> {
 export default async function QuarterlyReviewPage({
   params,
 }: QuarterlyReviewPageProps) {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   const review = await getQuarterlyReview(params.id);
 

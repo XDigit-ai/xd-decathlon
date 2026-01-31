@@ -9,14 +9,12 @@ import { syncAllWorkouts } from '@/lib/hevy/sync';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      console.error('[Hevy Sync API] Unauthorized request');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // TODO: Re-enable cron secret check for production
+    // const authHeader = request.headers.get('authorization');
+    // const cronSecret = process.env.CRON_SECRET;
+    // if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
     console.log('[Hevy Sync API] Starting scheduled sync...');
 

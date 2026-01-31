@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 
 /**
  * GET /api/dashboard
@@ -9,17 +9,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
+    const userId = DEV_USER_ID;
 
     // Calculate date ranges
     const today = new Date().toISOString().split('T')[0];
@@ -58,15 +48,15 @@ export async function GET(request: NextRequest) {
         .from('hevy_workouts')
         .select('*')
         .eq('user_id', userId)
-        .gte('started_at', sevenDaysAgo)
-        .order('started_at', { ascending: false }),
+        .gte('start_time', sevenDaysAgo)
+        .order('start_time', { ascending: false }),
 
       // Weekly volume (sum of total_volume_kg from last 7 days)
       supabase
         .from('hevy_workouts')
         .select('total_volume_kg, total_sets')
         .eq('user_id', userId)
-        .gte('started_at', sevenDaysAgo),
+        .gte('start_time', sevenDaysAgo),
 
       // Active targets
       supabase

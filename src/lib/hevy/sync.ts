@@ -131,8 +131,8 @@ export async function syncWorkout(
           user_id: USER_ID,
           hevy_id: workout.id,
           title: workout.title || 'Untitled Workout',
-          started_at: workout.start_time,
-          ended_at: workout.end_time || null,
+          start_time: workout.start_time,
+          end_time: workout.end_time || workout.start_time,
           duration_seconds: duration,
           total_volume_kg: totalVolume,
           total_sets: totalSets,
@@ -159,7 +159,7 @@ export async function syncWorkout(
         result.one_rms_calculated += exerciseResult.one_rm_calculated ? 1 : 0;
         result.prs_detected += exerciseResult.prs_detected;
       } catch (error) {
-        console.error(`[Hevy Sync] Error syncing exercise ${exercise.id}:`, error);
+        console.error(`[Hevy Sync] Error syncing exercise ${exercise.title}:`, error);
         result.error = `Exercise sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
     }
@@ -192,11 +192,11 @@ async function syncExercise(
     .from('exercise_templates')
     .upsert(
       {
-        hevy_id: exercise.exercise_template_id,
+        user_id: USER_ID,
+        hevy_template_id: exercise.exercise_template_id,
         title: exercise.title,
-        is_custom: false,
       },
-      { onConflict: 'hevy_id' }
+      { onConflict: 'hevy_template_id' }
     )
     .select()
     .single();
@@ -205,18 +205,21 @@ async function syncExercise(
     throw new Error(`Failed to upsert exercise template: ${templateError.message}`);
   }
 
-  // Upsert workout exercise (link between workout and exercise template)
+  // Upsert workout exercise (link between workout and exercise)
   const { data: workoutExercise, error: workoutExerciseError } = await supabase
     .from('hevy_workout_exercises')
     .upsert(
       {
+        user_id: USER_ID,
         workout_id: workoutId,
-        exercise_template_id: template.id,
-        exercise_index: exercise.exercise_index || 0,
+        hevy_exercise_id: exercise.exercise_template_id,
+        title: exercise.title,
+        exercise_index: exercise.index ?? 0,
+        superset_id: exercise.superset_id ?? null,
         notes: exercise.notes || null,
       },
       {
-        onConflict: 'workout_id,exercise_template_id,exercise_index',
+        onConflict: 'workout_id,exercise_index',
         ignoreDuplicates: false,
       }
     )
@@ -231,13 +234,14 @@ async function syncExercise(
   await supabase
     .from('hevy_sets')
     .delete()
-    .eq('workout_exercise_id', workoutExercise.id);
+    .eq('exercise_id', workoutExercise.id);
 
   // Insert all sets
   const sets = (exercise.sets || []).map((set, index) => ({
-    workout_exercise_id: workoutExercise.id,
+    user_id: USER_ID,
+    exercise_id: workoutExercise.id,
     set_index: set.index ?? index,
-    set_type: set.set_type || 'normal',
+    set_type: set.type || 'normal',
     weight_kg: set.weight_kg || null,
     reps: set.reps || null,
     rpe: set.rpe || null,
@@ -290,7 +294,7 @@ async function calculate1RMForExercise(
   // Filter valid sets for 1RM calculation
   const validSets = sets.filter(
     (set) =>
-      set.set_type === 'normal' &&
+      set.type === 'normal' &&
       set.weight_kg &&
       set.weight_kg > 0 &&
       set.reps &&
@@ -330,8 +334,8 @@ async function calculate1RMForExercise(
       date: today,
       estimated_1rm_kg: best1RM,
       formula: 'epley',
-      source_weight_kg: bestSet.weight_kg,
-      source_reps: bestSet.reps,
+      best_set_weight: bestSet.weight_kg,
+      best_set_reps: bestSet.reps,
     },
     { onConflict: 'user_id,exercise_template_id,date' }
   );
@@ -358,12 +362,12 @@ async function detectPersonalRecords(
   // Get workout date
   const { data: workout } = await supabase
     .from('hevy_workouts')
-    .select('started_at')
+    .select('start_time')
     .eq('id', workoutId)
     .single();
 
-  const workoutDate = workout?.started_at
-    ? new Date(workout.started_at).toISOString().split('T')[0]
+  const workoutDate = workout?.start_time
+    ? new Date(workout.start_time).toISOString().split('T')[0]
     : new Date().toISOString().split('T')[0];
 
   // Check for max weight PR
@@ -397,7 +401,7 @@ async function detectPersonalRecords(
   // Check for 1RM PR
   const validSets = sets.filter(
     (set) =>
-      set.set_type === 'normal' &&
+      set.type === 'normal' &&
       set.weight_kg &&
       set.weight_kg > 0 &&
       set.reps &&

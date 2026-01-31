@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { StatusCard } from '@/components/dashboard/status-card';
 import { RecoveryStatus } from '@/components/dashboard/recovery-status';
 import { TargetProgress } from '@/components/dashboard/target-progress';
@@ -12,7 +12,7 @@ import { formatDate } from '@/lib/utils/date';
 interface Workout {
   id: string;
   title: string;
-  started_at: string;
+  start_time: string;
   total_volume_kg: number;
   total_sets: number;
 }
@@ -57,7 +57,7 @@ async function getDashboardData(userId: string) {
       .from('hevy_workouts')
       .select('*')
       .eq('user_id', userId)
-      .order('started_at', { ascending: false })
+      .order('start_time', { ascending: false })
       .limit(5),
 
     // Weekly volume
@@ -65,7 +65,7 @@ async function getDashboardData(userId: string) {
       .from('hevy_workouts')
       .select('total_volume_kg, total_sets')
       .eq('user_id', userId)
-      .gte('started_at', sevenDaysAgo),
+      .gte('start_time', sevenDaysAgo),
 
     // Active targets
     supabase
@@ -147,17 +147,9 @@ async function getDashboardData(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
+  const userId = DEV_USER_ID;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const dashboardData = await getDashboardData(user.id);
+  const dashboardData = await getDashboardData(userId);
 
   return (
     <div className="space-y-6">

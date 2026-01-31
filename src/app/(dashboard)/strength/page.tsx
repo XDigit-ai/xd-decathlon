@@ -4,7 +4,7 @@
  */
 
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WorkoutCard } from '@/components/strength/workout-card';
@@ -24,7 +24,7 @@ async function getRecentWorkouts() {
   const { data, error } = await supabase
     .from('hevy_workouts')
     .select('*')
-    .order('started_at', { ascending: false })
+    .order('start_time', { ascending: false })
     .limit(20);
 
   if (error) {
@@ -135,15 +135,7 @@ function OneRMSkeleton() {
 }
 
 export default async function StrengthPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   // Fetch data in parallel
   const [workouts, oneRMs, prs] = await Promise.all([
@@ -232,7 +224,7 @@ export default async function StrengthPage() {
                     key={workout.id}
                     id={workout.id}
                     title={workout.title}
-                    date={workout.started_at}
+                    date={workout.start_time}
                     duration={workout.duration_seconds}
                     totalVolume={Number(workout.total_volume_kg)}
                     totalSets={workout.total_sets}

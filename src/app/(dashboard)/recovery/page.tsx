@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { RecoveryStatus } from '@/components/dashboard/recovery-status';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,17 +43,9 @@ async function getRecoveryData(userId: string) {
 }
 
 export default async function RecoveryPage() {
-  const supabase = await createClient();
+  const userId = DEV_USER_ID;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const recoveryData = await getRecoveryData(user.id);
+  const recoveryData = await getRecoveryData(userId);
   const hasWhoopData = !!recoveryData.latest;
 
   // Determine recovery status

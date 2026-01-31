@@ -4,7 +4,7 @@
  */
 
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -89,7 +89,7 @@ async function getExerciseData(exerciseId: string): Promise<ExerciseData | null>
       hevy_workouts!inner(
         id,
         title,
-        started_at
+        start_time
       ),
       hevy_sets(
         set_index,
@@ -101,7 +101,7 @@ async function getExerciseData(exerciseId: string): Promise<ExerciseData | null>
     `
     )
     .eq('exercise_template_id', exerciseId)
-    .order('hevy_workouts.started_at', { ascending: false })
+    .order('hevy_workouts.start_time', { ascending: false })
     .limit(20);
 
   // Transform workout history
@@ -109,7 +109,7 @@ async function getExerciseData(exerciseId: string): Promise<ExerciseData | null>
     workoutExercises?.map((we: any) => ({
       workout_id: we.hevy_workouts.id,
       workout_title: we.hevy_workouts.title,
-      workout_date: we.hevy_workouts.started_at,
+      workout_date: we.hevy_workouts.start_time,
       sets: (we.hevy_sets || [])
         .sort((a: any, b: any) => a.set_index - b.set_index)
         .map((s: any) => ({
@@ -154,16 +154,8 @@ function formatSetType(type: string): string {
 }
 
 export default async function ExerciseDetailPage({ params }: ExerciseDetailPageProps) {
-  const supabase = await createClient();
   const resolvedParams = await params;
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   const exerciseData = await getExerciseData(resolvedParams.exerciseId);
 

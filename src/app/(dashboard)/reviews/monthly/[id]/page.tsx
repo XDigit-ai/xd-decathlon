@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { DEV_USER_ID } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 
 interface MonthlyReviewPageProps {
@@ -35,15 +35,7 @@ async function getMonthlyReview(id: string): Promise<MonthlyReview | null> {
 export default async function MonthlyReviewPage({
   params,
 }: MonthlyReviewPageProps) {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   const review = await getMonthlyReview(params.id);
 

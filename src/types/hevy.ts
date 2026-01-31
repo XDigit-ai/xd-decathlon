@@ -9,21 +9,21 @@
 
 export interface HevyApiSet {
   index: number;
-  set_type: 'normal' | 'warmup' | 'failure' | 'drop';
-  weight_kg?: number;
-  reps?: number;
-  rpe?: number;
-  distance_meters?: number;
-  duration_seconds?: number;
+  type: 'normal' | 'warmup' | 'failure' | 'drop';
+  weight_kg: number | null;
+  reps: number | null;
+  rpe: number | null;
+  distance_meters: number | null;
+  duration_seconds: number | null;
+  custom_metric: number | null;
 }
 
 export interface HevyApiExercise {
-  id: string;
+  index: number;
   exercise_template_id: string;
   title: string;
-  exercise_index: number;
-  superset_id?: number;
-  notes?: string;
+  superset_id: number | null;
+  notes: string;
   sets: HevyApiSet[];
 }
 

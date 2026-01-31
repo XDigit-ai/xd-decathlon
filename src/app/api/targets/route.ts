@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { TARGET_METRICS } from '@/types/targets';
 import type {
   Target,
@@ -137,15 +137,7 @@ function enrichTargetWithProgress(target: Target): TargetWithProgress {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const searchParams = request.nextUrl.searchParams;
     const statusFilter = searchParams.get('status') as TargetStatus | null;
@@ -153,7 +145,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('targets')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (statusFilter) {
@@ -196,15 +188,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const body: CreateTargetInput = await request.json();
 
@@ -230,7 +214,7 @@ export async function POST(request: NextRequest) {
     const { data: target, error } = await supabase
       .from('targets')
       .insert({
-        user_id: session.user.id,
+        user_id: userId,
         domain: body.domain,
         metric_name: metricInfo.name,
         unit: metricInfo.unit,
@@ -276,15 +260,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const body: UpdateTargetInput & { id: string } = await request.json();
 
@@ -300,7 +276,7 @@ export async function PUT(request: NextRequest) {
       .from('targets')
       .select('*')
       .eq('id', body.id)
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .single();
 
     if (fetchError || !existingTarget) {
@@ -339,7 +315,7 @@ export async function PUT(request: NextRequest) {
       .from('targets')
       .update(updateData)
       .eq('id', body.id)
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .select()
       .single();
 

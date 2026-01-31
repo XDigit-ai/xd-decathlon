@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 
 // Type definitions for functional tests
 const VALID_TEST_TYPES = [
@@ -60,15 +60,7 @@ interface FunctionalTest {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const searchParams = request.nextUrl.searchParams;
     const testType = searchParams.get('type');
@@ -79,7 +71,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('functional_tests')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .order('date', { ascending: false });
 
     // Apply filters
@@ -176,15 +168,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const body = await request.json();
     const { test_type, value, date, load_kg, notes } = body;
@@ -215,7 +199,7 @@ export async function POST(request: NextRequest) {
     const { data: previousTests } = await supabase
       .from('functional_tests')
       .select('value')
-      .eq('user_id', session.user.id)
+      .eq('user_id', userId)
       .eq('test_type', test_type)
       .order('value', { ascending: test_type === 'mile_run' || test_type === 'floor_getup' });
 
@@ -239,7 +223,7 @@ export async function POST(request: NextRequest) {
       await supabase
         .from('functional_tests')
         .update({ is_pr: false })
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
         .eq('test_type', test_type);
     }
 
@@ -247,7 +231,7 @@ export async function POST(request: NextRequest) {
     const { data: newTest, error: insertError } = await supabase
       .from('functional_tests')
       .insert({
-        user_id: session.user.id,
+        user_id: userId,
         test_type,
         value,
         unit,

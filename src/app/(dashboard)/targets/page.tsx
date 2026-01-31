@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 import { ProgressSummary } from '@/components/targets/progress-summary';
 import { TargetGrid } from '@/components/targets/target-grid';
 import { TARGET_METRICS } from '@/types/targets';
@@ -99,19 +99,12 @@ function enrichTargetWithProgress(target: Target): TargetWithProgress {
 
 async function getTargets(): Promise<TargetWithProgress[]> {
   const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return [];
-  }
+  const userId = DEV_USER_ID;
 
   const { data: targets, error } = await supabase
     .from('targets')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', userId)
     .eq('status', 'active')
     .order('created_at', { ascending: false });
 
@@ -143,20 +136,6 @@ function groupTargetsByCategory(
 }
 
 export default async function TargetsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Please sign in to view your targets.</p>
-      </div>
-    );
-  }
-
   const targets = await getTargets();
   const targetsByCategory = groupTargetsByCategory(targets);
 

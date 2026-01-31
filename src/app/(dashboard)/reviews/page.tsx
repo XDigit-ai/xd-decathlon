@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { DEV_USER_ID } from '@/lib/supabase/server';
 import Link from 'next/link';
 
 // TODO: Define proper types for reviews
@@ -18,15 +18,7 @@ async function getReviews(): Promise<Review[]> {
 }
 
 export default async function ReviewsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return null;
-  }
+  const userId = DEV_USER_ID;
 
   const reviews = await getReviews();
 

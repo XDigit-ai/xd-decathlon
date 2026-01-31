@@ -42,3 +42,35 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.key
+# Credentials
+.credentials/
+secrets/
+# OS
+Thumbs.db
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+# Runtime
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+.next/
+.nuxt/
+.output/
+# Debug
+*.log
+# Test
+coverage/
+.nyc_output/

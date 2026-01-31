@@ -1,26 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
     const from = searchParams.get('from');
     const to = searchParams.get('to');
     const limit = searchParams.get('limit');
-
-    const userId = session.user.id;
 
     if (type === 'weight') {
       let query = supabase
@@ -137,15 +127,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const body = await request.json();
     const { type, ...data } = body;
@@ -156,8 +138,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const userId = session.user.id;
 
     if (type === 'weight') {
       if (!data.date || !data.weight_kg) {
@@ -288,15 +268,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient();
-
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const userId = DEV_USER_ID;
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
@@ -308,8 +280,6 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const userId = session.user.id;
 
     if (type === 'weight') {
       const { error } = await supabase

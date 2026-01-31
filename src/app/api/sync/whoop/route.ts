@@ -1,65 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { syncWhoopData } from '@/lib/whoop/sync';
 
 /**
  * GET /api/sync/whoop
  *
- * Cron job handler for scheduled Whoop data sync
- * TODO: Verify CRON_SECRET to ensure request is from Vercel Cron
- * TODO: Fetch latest recovery, sleep, and workout data from Whoop API
- * TODO: Handle token refresh if access token expired
- * TODO: Compare with last sync timestamp to get only new data
- * TODO: Store recovery scores, HRV, RHR, sleep metrics in Supabase
- * TODO: Calculate traffic light recovery status
- * TODO: Update cardio metrics (VO2 max, HR zone compliance)
- * TODO: Update last sync timestamp
- * TODO: Return sync summary (records synced, errors)
+ * Triggers a Whoop data sync for the dev user.
+ * Fetches recovery, sleep, workout, and cycle data from the Whoop API
+ * and upserts it into the Supabase database.
+ *
+ * Query parameters:
+ *   - days: Number of days to look back (default: 30, max: 365)
+ *
+ * In production this would be protected by CRON_SECRET.
+ * For development, authentication is skipped.
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    // Parse optional days parameter
+    const searchParams = request.nextUrl.searchParams;
+    const daysParam = searchParams.get('days');
+    const daysBack = daysParam
+      ? Math.min(Math.max(parseInt(daysParam, 10) || 30, 1), 365)
+      : 30;
 
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    console.log(`[Whoop Sync API] Starting sync for last ${daysBack} days`);
 
-    const supabase = await createClient();
-
-    // TODO: Get all users with Whoop OAuth tokens
-    // TODO: For each user:
-    //   - Check if token needs refresh
-    //   - Fetch recovery data since last sync
-    //   - Fetch sleep data since last sync
-    //   - Fetch workout data since last sync
-    //   - Process and store data
-    //   - Calculate metrics and status
-    //   - Update sync timestamp
-
-    console.log('Whoop sync started');
-
-    const syncResults = {
-      usersProcessed: 0,
-      recoveryRecordsSynced: 0,
-      sleepRecordsSynced: 0,
-      workoutsSynced: 0,
-      errors: [],
-    };
-
-    // TODO: Implement sync logic
+    const summary = await syncWhoopData(daysBack);
 
     return NextResponse.json(
-      { success: true, results: syncResults },
-      { status: 200 }
+      {
+        success: summary.success,
+        results: {
+          recovery_synced: summary.recovery_synced,
+          sleep_synced: summary.sleep_synced,
+          workouts_synced: summary.workouts_synced,
+          cycles_synced: summary.cycles_synced,
+          errors: summary.errors,
+          duration_ms: summary.duration_ms,
+        },
+      },
+      { status: summary.success ? 200 : 207 }
     );
   } catch (error) {
-    console.error('Whoop sync error:', error);
+    console.error('[Whoop Sync API] Error:', error);
     return NextResponse.json(
-      { success: false, error: 'Sync failed' },
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Whoop sync failed',
+      },
       { status: 500 }
     );
   }

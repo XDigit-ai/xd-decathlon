@@ -146,8 +146,8 @@ export interface DbEstimated1RM {
   date: string;
   estimated_1rm_kg: number;
   formula: 'epley';
-  source_weight_kg: number | null;
-  source_reps: number | null;
+  best_set_weight: number | null;
+  best_set_reps: number | null;
   created_at: string;
 }
 
