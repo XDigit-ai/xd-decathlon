@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     // Optionally fetch the Whoop user profile to store the whoop_user_id
     try {
       const profileResponse = await fetch(
-        'https://api.prod.whoop.com/developer/v1/user/profile/basic',
+        'https://api.prod.whoop.com/developer/v2/user/profile/basic',
         {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,

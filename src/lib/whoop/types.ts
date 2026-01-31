@@ -77,7 +77,7 @@ export interface WhoopSleepScore {
 }
 
 export interface WhoopSleep {
-  id: number;
+  id: number | string;
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -109,18 +109,20 @@ export interface WhoopWorkoutScore {
   distance_meter?: number;
   altitude_gain_meter?: number;
   altitude_change_meter?: number;
-  zone_duration: WhoopWorkoutZoneDuration;
+  zone_duration?: WhoopWorkoutZoneDuration;
+  zone_durations?: WhoopWorkoutZoneDuration;
 }
 
 export interface WhoopWorkout {
-  id: number;
+  id: number | string;
   user_id: number;
   created_at: string;
   updated_at: string;
   start: string;
   end: string;
   timezone_offset: string;
-  sport_id: number;
+  sport_id?: number;
+  sport_name?: string;
   score_state: 'SCORED' | 'PENDING_SCORE' | 'UNSCORABLE';
   score: WhoopWorkoutScore;
 }

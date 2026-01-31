@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { syncWhoopData } from '@/lib/whoop/sync';
+import { syncWhoopData, getValidAccessToken } from '@/lib/whoop/sync';
 
 /**
  * GET /api/sync/whoop
@@ -10,14 +10,45 @@ import { syncWhoopData } from '@/lib/whoop/sync';
  *
  * Query parameters:
  *   - days: Number of days to look back (default: 30, max: 365)
+ *   - debug: If "1", tests each endpoint individually and returns debug info
  *
  * In production this would be protected by CRON_SECRET.
  * For development, authentication is skipped.
  */
 export async function GET(request: NextRequest) {
   try {
-    // Parse optional days parameter
     const searchParams = request.nextUrl.searchParams;
+
+    // Debug mode: test each endpoint individually
+    if (searchParams.get('debug') === '1') {
+      const token = await getValidAccessToken();
+      const base = 'https://api.prod.whoop.com/developer';
+      const endpoints = [
+        { name: 'v1_cycle', path: '/v1/cycle?limit=1' },
+        { name: 'v2_cycle', path: '/v2/cycle?limit=1' },
+        { name: 'v1_recovery', path: '/v1/recovery?limit=1' },
+        { name: 'v2_recovery', path: '/v2/recovery?limit=1' },
+        { name: 'v1_sleep', path: '/v1/activity/sleep?limit=1' },
+        { name: 'v2_sleep', path: '/v2/activity/sleep?limit=1' },
+        { name: 'v1_workout', path: '/v1/activity/workout?limit=1' },
+        { name: 'v2_workout', path: '/v2/activity/workout?limit=1' },
+      ];
+
+      const results: Record<string, { status: number; body: string }> = {};
+      for (const ep of endpoints) {
+        const url = `${base}${ep.path}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        results[ep.name] = {
+          status: res.status,
+          body: (await res.text()).substring(0, 1000),
+        };
+      }
+      return NextResponse.json({ debug: true, results });
+    }
+
+    // Normal sync mode
     const daysParam = searchParams.get('days');
     const daysBack = daysParam
       ? Math.min(Math.max(parseInt(daysParam, 10) || 30, 1), 365)

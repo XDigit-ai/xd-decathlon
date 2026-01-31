@@ -1,7 +1,7 @@
 /**
  * Whoop API v2 Client
  * Typed wrapper for Whoop developer API with automatic pagination and error handling.
- * Base URL: https://api.prod.whoop.com/developer/v1
+ * Base URL: https://api.prod.whoop.com/developer/v2
  */
 
 import type {
@@ -14,7 +14,7 @@ import type {
   WhoopCycle,
 } from './types';
 
-const WHOOP_API_BASE = 'https://api.prod.whoop.com/developer/v1';
+const WHOOP_API_BASE = 'https://api.prod.whoop.com/developer/v2';
 
 export class WhoopApiError extends Error {
   constructor(
@@ -174,7 +174,7 @@ export class WhoopClient {
   async getRecovery(
     params?: WhoopPaginationParams
   ): Promise<WhoopPaginatedResponse<WhoopRecovery>> {
-    return this.fetchPage<WhoopRecovery>('/activity/recovery', params);
+    return this.fetchPage<WhoopRecovery>('/recovery', params);
   }
 
   /**
@@ -186,7 +186,7 @@ export class WhoopClient {
     onProgress?: (fetched: number) => void
   ): Promise<WhoopRecovery[]> {
     return this.fetchAllPages<WhoopRecovery>(
-      '/activity/recovery',
+      '/recovery',
       { limit: 25, ...params },
       onProgress
     );

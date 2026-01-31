@@ -135,7 +135,7 @@ async function refreshAccessToken(
 /**
  * Get a valid access token, refreshing if necessary.
  */
-async function getValidAccessToken(): Promise<string> {
+export async function getValidAccessToken(): Promise<string> {
   let tokenData = await getStoredTokens();
 
   if (!tokenData) {
@@ -312,9 +312,8 @@ async function upsertSleepData(sleepRecords: WhoopSleep[]): Promise<number> {
     const stages = score.stage_summary;
     const date = toDateString(sleep.start);
 
-    // Total sleep time = total in bed - awake time
-    const totalSleepMilli =
-      stages.total_in_bed_time_milli - stages.total_awake_time_milli;
+    // Total in-bed time (includes all stages + awake time)
+    const totalSleepMilli = stages.total_in_bed_time_milli;
 
     const { error } = await supabase.from('whoop_sleep').upsert(
       {
@@ -359,10 +358,10 @@ async function upsertWorkoutData(workouts: WhoopWorkout[]): Promise<number> {
     }
 
     const score = workout.score;
-    const zones = score.zone_duration;
+    const zones = score.zone_durations || score.zone_duration;
     const date = toDateString(workout.start);
     const durationMinutes = calculateDurationMinutes(workout.start, workout.end);
-    const sportName = sportMap[workout.sport_id] || `Sport ${workout.sport_id}`;
+    const sportName = workout.sport_name || (workout.sport_id ? (sportMap[workout.sport_id] || `Sport ${workout.sport_id}`) : 'Unknown');
 
     const { error } = await supabase.from('whoop_workouts').upsert(
       {
@@ -375,11 +374,11 @@ async function upsertWorkoutData(workouts: WhoopWorkout[]): Promise<number> {
         avg_hr: score.average_heart_rate,
         max_hr: score.max_heart_rate,
         kilojoules: score.kilojoule,
-        zone1_minutes: milliToMinutes(zones.zone_one_milli),
-        zone2_minutes: milliToMinutes(zones.zone_two_milli),
-        zone3_minutes: milliToMinutes(zones.zone_three_milli),
-        zone4_minutes: milliToMinutes(zones.zone_four_milli),
-        zone5_minutes: milliToMinutes(zones.zone_five_milli),
+        zone1_minutes: zones ? milliToMinutes(zones.zone_one_milli) : null,
+        zone2_minutes: zones ? milliToMinutes(zones.zone_two_milli) : null,
+        zone3_minutes: zones ? milliToMinutes(zones.zone_three_milli) : null,
+        zone4_minutes: zones ? milliToMinutes(zones.zone_four_milli) : null,
+        zone5_minutes: zones ? milliToMinutes(zones.zone_five_milli) : null,
         raw_data: workout,
       },
       { onConflict: 'whoop_id' }
