@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/sync/hevy", "schedule": "0 */4 * * *" },
+    { "path": "/api/sync/whoop", "schedule": "0 */2 * * *" }
+  ]
+}

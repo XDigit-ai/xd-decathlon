@@ -1,0 +1,48 @@
+{
+  "name": "decathlon",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "@supabase/supabase-js": "^2",
+    "@supabase/ssr": "^0.6",
+    "recharts": "^2",
+    "lucide-react": "^0.469",
+    "date-fns": "^4",
+    "zod": "^3",
+    "class-variance-authority": "^0.7",
+    "clsx": "^2",
+    "tailwind-merge": "^3",
+    "@radix-ui/react-dialog": "^1",
+    "@radix-ui/react-dropdown-menu": "^2",
+    "@radix-ui/react-label": "^2",
+    "@radix-ui/react-progress": "^1",
+    "@radix-ui/react-select": "^2",
+    "@radix-ui/react-separator": "^1",
+    "@radix-ui/react-slot": "^1",
+    "@radix-ui/react-tabs": "^1",
+    "@radix-ui/react-toast": "^1",
+    "@radix-ui/react-tooltip": "^1",
+    "@radix-ui/react-avatar": "^1",
+    "@radix-ui/react-scroll-area": "^1",
+    "@radix-ui/react-switch": "^1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

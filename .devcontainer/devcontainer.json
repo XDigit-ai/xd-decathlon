@@ -1,0 +1,32 @@
+{
+  "name": "Decathlon",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/supabase-cli:1": {}
+  },
+  "forwardPorts": [3000],
+  "postCreateCommand": "npm install",
+  "postStartCommand": "echo '✅ Decathlon sandbox ready — $(git config user.email)'",
+  "containerEnv": {
+    "PROJECT_NAME": "decathlon",
+    "SUPABASE_PROJECT_ID": "ymudzmawcwkoubiqfjbt"
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.env.local,target=/workspace/.env.local,type=bind",
+    "source=decathlon-node-modules,target=/workspace/node_modules,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}
