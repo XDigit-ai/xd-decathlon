@@ -1,4 +1,5 @@
 {
+  "regions": ["bom1"],
   "crons": [
     { "path": "/api/sync/hevy", "schedule": "0 6 * * *" },
     { "path": "/api/sync/whoop", "schedule": "0 7 * * *" }
