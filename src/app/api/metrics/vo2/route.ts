@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getAuthUser } from '@/lib/supabase/auth';
+import { getAuthUserOrNull } from '@/lib/supabase/auth';
 
 export type Vo2Source = 'lab_test' | 'watch' | 'whoop' | 'calculated' | 'manual';
 
@@ -21,7 +21,8 @@ interface Vo2Entry {
  */
 export async function GET(request: NextRequest) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
 
     const searchParams = request.nextUrl.searchParams;
@@ -70,7 +71,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
 
     const body = await request.json();
@@ -142,7 +144,8 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
 
     const searchParams = request.nextUrl.searchParams;
