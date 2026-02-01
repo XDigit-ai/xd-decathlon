@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { DEV_USER_ID } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { notFound } from 'next/navigation';
 
 interface MonthlyReviewPageProps {
@@ -35,7 +35,7 @@ async function getMonthlyReview(id: string): Promise<MonthlyReview | null> {
 export default async function MonthlyReviewPage({
   params,
 }: MonthlyReviewPageProps) {
-  const userId = DEV_USER_ID;
+  await getAuthUser();
 
   const review = await getMonthlyReview(params.id);
 

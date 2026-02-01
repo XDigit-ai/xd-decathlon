@@ -4,7 +4,8 @@
  */
 
 import { Suspense } from 'react';
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { notFound } from 'next/navigation';
 import {
   Card,
@@ -155,7 +156,7 @@ function formatSetType(type: string): string {
 
 export default async function ExerciseDetailPage({ params }: ExerciseDetailPageProps) {
   const resolvedParams = await params;
-  const userId = DEV_USER_ID;
+  await getAuthUser();
 
   const exerciseData = await getExerciseData(resolvedParams.exerciseId);
 

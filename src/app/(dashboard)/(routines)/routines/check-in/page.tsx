@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { QuickAdd } from '@/components/dashboard/quick-add';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate } from '@/lib/utils/date';
@@ -34,11 +35,11 @@ async function getRecentWeights(userId: string) {
 }
 
 export default async function CheckInPage() {
-  const userId = DEV_USER_ID;
+  const user = await getAuthUser();
 
   const [wellness, weights] = await Promise.all([
-    getRecentWellness(userId),
-    getRecentWeights(userId),
+    getRecentWellness(user.id),
+    getRecentWeights(user.id),
   ]);
 
   return (

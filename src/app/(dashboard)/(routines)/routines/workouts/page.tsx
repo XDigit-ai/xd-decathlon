@@ -4,7 +4,8 @@
  */
 
 import { Suspense } from 'react';
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WorkoutCard } from '@/components/strength/workout-card';
@@ -135,7 +136,7 @@ function OneRMSkeleton() {
 }
 
 export default async function StrengthPage() {
-  const userId = DEV_USER_ID;
+  await getAuthUser();
 
   // Fetch data in parallel
   const [workouts, oneRMs, prs] = await Promise.all([

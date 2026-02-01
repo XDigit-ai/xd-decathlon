@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUserOrNull } from '@/lib/supabase/auth';
 import { TARGET_METRICS } from '@/types/targets';
 import type {
   Target,
@@ -136,8 +137,10 @@ function enrichTargetWithProgress(target: Target): TargetWithProgress {
  */
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const searchParams = request.nextUrl.searchParams;
     const statusFilter = searchParams.get('status') as TargetStatus | null;
@@ -187,8 +190,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const body: CreateTargetInput = await request.json();
 
@@ -259,8 +264,10 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const body: UpdateTargetInput & { id: string } = await request.json();
 

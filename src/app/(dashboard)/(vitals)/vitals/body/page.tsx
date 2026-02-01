@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeightForm } from '@/components/body/weight-form';
@@ -80,9 +81,9 @@ async function getBodyData(userId: string) {
 }
 
 export default async function BodyCompositionPage() {
-  const userId = DEV_USER_ID;
+  const user = await getAuthUser();
 
-  const { weight, measurements, dexaScans } = await getBodyData(userId);
+  const { weight, measurements, dexaScans } = await getBodyData(user.id);
 
   return (
     <div className="space-y-6">

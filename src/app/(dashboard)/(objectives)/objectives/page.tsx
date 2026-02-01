@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { ProgressSummary } from '@/components/targets/progress-summary';
 import { TargetGrid } from '@/components/targets/target-grid';
 import { TARGET_METRICS } from '@/types/targets';
@@ -97,9 +98,8 @@ function enrichTargetWithProgress(target: Target): TargetWithProgress {
   };
 }
 
-async function getTargets(): Promise<TargetWithProgress[]> {
+async function getTargets(userId: string): Promise<TargetWithProgress[]> {
   const supabase = await createClient();
-  const userId = DEV_USER_ID;
 
   const { data: targets, error } = await supabase
     .from('targets')
@@ -136,7 +136,8 @@ function groupTargetsByCategory(
 }
 
 export default async function TargetsPage() {
-  const targets = await getTargets();
+  const user = await getAuthUser();
+  const targets = await getTargets(user.id);
   const targetsByCategory = groupTargetsByCategory(targets);
 
   return (

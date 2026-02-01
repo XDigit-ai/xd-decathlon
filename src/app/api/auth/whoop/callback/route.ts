@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { WhoopTokenResponse, WhoopStoredTokenData } from '@/lib/whoop/types';
-
-// Hardcoded dev user ID (single-user app, no Supabase Auth wired up yet)
-const DEV_USER_ID = '0e8cc399-f19b-4dae-9eff-80e1ef81b875';
 
 /**
  * GET /api/auth/whoop/callback
@@ -53,6 +51,13 @@ export async function GET(request: NextRequest) {
 
     // Clear the state cookie now that it has been verified
     cookieStore.delete('whoop_oauth_state');
+
+    // Resolve authenticated user from session
+    const supabaseSession = await createClient();
+    const { data: { user } } = await supabaseSession.auth.getUser();
+    if (!user) {
+      return NextResponse.redirect(`${appUrl}/login`);
+    }
 
     // Exchange authorization code for tokens
     const redirectUri =
@@ -131,7 +136,7 @@ export async function GET(request: NextRequest) {
       .from('integration_tokens')
       .upsert(
         {
-          user_id: DEV_USER_ID,
+          user_id: user.id,
           provider: 'whoop',
           token_data: tokenData,
           token_type: tokens.token_type,
@@ -151,7 +156,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[Whoop Callback] Tokens stored successfully for user:', DEV_USER_ID);
+    console.log('[Whoop Callback] Tokens stored successfully for user:', user.id);
 
     return NextResponse.redirect(
       `${appUrl}/settings?success=whoop_connected`

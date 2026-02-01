@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -133,8 +134,8 @@ async function getDashboardData(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const userId = DEV_USER_ID;
-  const data = await getDashboardData(userId);
+  const user = await getAuthUser();
+  const data = await getDashboardData(user.id);
 
   const trafficColors = {
     green: { bg: 'bg-emerald-500', label: 'Optimal' },

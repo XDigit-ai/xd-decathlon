@@ -15,8 +15,9 @@ import type {
   WorkoutSyncResult,
 } from './types';
 
-// Hardcoded user ID for single-user app
-const USER_ID = '0e8cc399-f19b-4dae-9eff-80e1ef81b875';
+import { APP_USER_ID } from '@/lib/constants';
+
+const USER_ID = APP_USER_ID;
 
 /**
  * Sync all workouts from Hevy API to database

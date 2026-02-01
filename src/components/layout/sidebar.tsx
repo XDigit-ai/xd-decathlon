@@ -16,6 +16,7 @@ import {
   Activity,
   Wind,
   Settings,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -120,9 +121,18 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Settings + Version at bottom */}
+        {/* Settings + Sign out + Version at bottom */}
         <div className="border-t border-border/50 px-3 py-3">
           <NavLink item={settingsItem} active={isActive(pathname, settingsItem.href)} />
+          <form action="/api/auth/logout" method="POST">
+            <button
+              type="submit"
+              className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-all duration-200 hover:bg-accent hover:text-sidebar-foreground hover:shadow-sm"
+            >
+              <LogOut className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
+              <span>Sign out</span>
+            </button>
+          </form>
           <p className="mt-2 px-3 text-xs font-medium text-muted-foreground">
             v1.0.0
           </p>

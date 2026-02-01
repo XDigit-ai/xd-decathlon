@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Heart, Moon, Scale, Wind, ArrowRight } from 'lucide-react';
@@ -98,8 +99,8 @@ async function getVitalsOverview(userId: string) {
 }
 
 export default async function VitalsOverviewPage() {
-  const userId = DEV_USER_ID;
-  const vitals = await getVitalsOverview(userId);
+  const user = await getAuthUser();
+  const vitals = await getVitalsOverview(user.id);
 
   const trafficColors = {
     green: { bg: 'bg-emerald-500', text: 'text-emerald-500', label: 'Optimal' },

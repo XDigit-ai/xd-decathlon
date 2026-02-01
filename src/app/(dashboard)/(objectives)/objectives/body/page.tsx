@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -99,8 +100,8 @@ async function getBodyGoals(userId: string): Promise<BodyGoals> {
 }
 
 export default async function BodyGoalsPage() {
-  const userId = DEV_USER_ID;
-  const goals = await getBodyGoals(userId);
+  const user = await getAuthUser();
+  const goals = await getBodyGoals(user.id);
 
   const hasData = goals.currentWeight !== null || goals.currentBodyFat !== null;
 

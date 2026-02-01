@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -100,8 +101,8 @@ async function getStrengthGoals(userId: string): Promise<LiftGoal[]> {
 }
 
 export default async function StrengthGoalsPage() {
-  const userId = DEV_USER_ID;
-  const goals = await getStrengthGoals(userId);
+  const user = await getAuthUser();
+  const goals = await getStrengthGoals(user.id);
 
   const hasAnyData = goals.some(g => g.current1RM !== null || g.baseline !== null);
 

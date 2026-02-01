@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/auth";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { SyncControls } from "@/components/settings/sync-controls";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,9 +31,9 @@ async function getSettingsData(userId: string) {
 }
 
 export default async function SettingsPage() {
-  const userId = DEV_USER_ID;
+  const user = await getAuthUser();
 
-  const { profile, apiKeys } = await getSettingsData(userId);
+  const { profile, apiKeys } = await getSettingsData(user.id);
 
   const hasHevyKey = !!(apiKeys?.hevy_api_key);
   const hasWhoopConnection = !!(apiKeys?.whoop_access_token);
@@ -126,7 +127,7 @@ export default async function SettingsPage() {
             <Label>User ID</Label>
             <Input
               type="text"
-              value={userId}
+              value={user.id}
               disabled
               className="bg-gray-50 font-mono text-xs"
             />

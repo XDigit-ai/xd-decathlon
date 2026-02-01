@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { DEV_USER_ID } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 
 // TODO: Define proper types for progress photos
 interface ProgressPhoto {
@@ -16,7 +16,7 @@ async function getProgressPhotos(): Promise<ProgressPhoto[]> {
 }
 
 export default async function ProgressPhotosPage() {
-  const userId = DEV_USER_ID;
+  await getAuthUser();
 
   const photos = await getProgressPhotos();
 

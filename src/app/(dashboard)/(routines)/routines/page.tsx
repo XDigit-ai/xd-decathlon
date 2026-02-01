@@ -1,4 +1,5 @@
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarCheck, Dumbbell, Moon, CheckSquare, ClipboardList, ArrowRight } from 'lucide-react';
@@ -97,8 +98,8 @@ async function getThisWeekData(userId: string) {
 }
 
 export default async function ThisWeekPage() {
-  const userId = DEV_USER_ID;
-  const data = await getThisWeekData(userId);
+  const user = await getAuthUser();
+  const data = await getThisWeekData(user.id);
 
   const trafficColors = {
     green: 'bg-emerald-500',

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, DEV_USER_ID } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { getAuthUserOrNull } from '@/lib/supabase/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
@@ -126,8 +129,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const body = await request.json();
     const { type, ...data } = body;
@@ -267,8 +272,10 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const user = await getAuthUserOrNull();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const supabase = await createClient();
-    const userId = DEV_USER_ID;
+    const userId = user.id;
 
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');

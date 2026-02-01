@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { DEV_USER_ID } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/auth';
 import { notFound } from 'next/navigation';
 
 interface WeeklyReviewPageProps {
@@ -28,7 +28,7 @@ async function getWeeklyReview(id: string): Promise<WeeklyReview | null> {
 }
 
 export default async function WeeklyReviewPage({ params }: WeeklyReviewPageProps) {
-  const userId = DEV_USER_ID;
+  await getAuthUser();
 
   const review = await getWeeklyReview(params.id);
 
