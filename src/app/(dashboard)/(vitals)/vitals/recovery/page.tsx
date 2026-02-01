@@ -52,7 +52,7 @@ export default async function RecoveryPage() {
   // Determine recovery status
   const recoveryScore = recoveryData.latest?.recovery_score || 0;
   const trafficLight = (recoveryData.latest?.traffic_light || 'green') as 'green' | 'yellow' | 'red';
-  const hrv = recoveryData.latest?.hrv || recoveryData.profile?.hrv_baseline || 0;
+  const hrv = recoveryData.latest?.hrv_rmssd || recoveryData.profile?.hrv_baseline || 0;
   const rhr = recoveryData.latest?.resting_hr || recoveryData.profile?.resting_hr || 0;
 
   let recoveryMessage = 'Train as planned';
@@ -71,7 +71,7 @@ export default async function RecoveryPage() {
 
   const avgHRV = recoveryData.trend.length > 0
     ? Math.round(
-        recoveryData.trend.reduce((sum, r) => sum + (r.hrv || 0), 0) / recoveryData.trend.length
+        recoveryData.trend.reduce((sum, r) => sum + (r.hrv_rmssd || 0), 0) / recoveryData.trend.length
       )
     : 0;
 
@@ -204,7 +204,7 @@ export default async function RecoveryPage() {
                             {formatDate(recovery.date)}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            HRV: {recovery.hrv || '--'} ms, RHR: {recovery.resting_hr || '--'} bpm
+                            HRV: {recovery.hrv_rmssd || '--'} ms, RHR: {recovery.resting_hr || '--'} bpm
                           </div>
                         </div>
                       </div>

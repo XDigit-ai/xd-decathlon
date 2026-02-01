@@ -26,7 +26,7 @@ async function getVitalsOverview(userId: string) {
     // 7-day recovery trend
     supabase
       .from('whoop_recovery')
-      .select('recovery_score, hrv, resting_hr, date, traffic_light')
+      .select('recovery_score, hrv_rmssd, resting_hr, date, traffic_light')
       .eq('user_id', userId)
       .order('date', { ascending: false })
       .limit(7),
@@ -61,7 +61,7 @@ async function getVitalsOverview(userId: string) {
 
   // Calculate 7-day averages
   const avgHRV = trend.length > 0
-    ? Math.round(trend.reduce((sum, r) => sum + (r.hrv || 0), 0) / trend.length)
+    ? Math.round(trend.reduce((sum, r) => sum + (r.hrv_rmssd || 0), 0) / trend.length)
     : null;
   const avgRHR = trend.length > 0
     ? Math.round(trend.reduce((sum, r) => sum + (r.resting_hr || 0), 0) / trend.length)
@@ -83,7 +83,7 @@ async function getVitalsOverview(userId: string) {
     recoveryScore: recovery?.recovery_score ?? null,
     trafficLight: (recovery?.traffic_light ?? 'green') as 'green' | 'yellow' | 'red',
     recoveryDate: recovery?.date ?? null,
-    hrv: recovery?.hrv ?? null,
+    hrv: recovery?.hrv_rmssd ?? null,
     rhr: recovery?.resting_hr ?? null,
     avgHRV,
     avgRHR,
