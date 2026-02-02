@@ -12,6 +12,7 @@ import {
   Flag,
   ClipboardList,
   CalendarCheck,
+  CalendarDays,
   CheckSquare,
   Activity,
   Wind,
@@ -25,6 +26,7 @@ interface NavItem {
   name: string;
   href: string;
   icon: LucideIcon;
+  exact?: boolean;
 }
 
 interface NavSection {
@@ -51,7 +53,8 @@ const navSections: NavSection[] = [
   {
     label: "ROUTINES",
     items: [
-      { name: "This Week", href: "/routines", icon: CalendarCheck },
+      { name: "This Week", href: "/routines", icon: CalendarCheck, exact: true },
+      { name: "Schedule", href: "/routines/schedule", icon: CalendarDays },
       { name: "Workouts", href: "/routines/workouts", icon: Dumbbell },
       { name: "Check-In", href: "/routines/check-in", icon: CheckSquare },
       { name: "Reviews", href: "/routines/reviews", icon: ClipboardList },
@@ -74,8 +77,8 @@ const settingsItem: NavItem = {
   icon: Settings,
 };
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+function isActive(pathname: string, href: string, exact?: boolean): boolean {
+  if (href === "/" || exact) return pathname === href;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -113,7 +116,7 @@ export function Sidebar() {
                   <NavLink
                     key={item.href}
                     item={item}
-                    active={isActive(pathname, item.href)}
+                    active={isActive(pathname, item.href, item.exact)}
                   />
                 ))}
               </div>

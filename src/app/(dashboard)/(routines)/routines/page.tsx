@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarCheck, Dumbbell, Moon, CheckSquare, ClipboardList, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import Link from 'next/link';
+import { TodaysPlan } from '@/components/routines/todays-plan';
 
 interface DayInfo {
   label: string;
@@ -149,6 +150,9 @@ export default async function ThisWeekPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Today's Plan */}
+      <TodaysPlan />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
