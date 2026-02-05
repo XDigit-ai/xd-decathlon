@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Activity, Heart, Moon, TrendingUp, Link as LinkIcon } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
+import { RecoveryTrendChart, type RecoveryTrendDataPoint } from '@/components/charts/recovery-trend-chart';
 
 async function getRecoveryData(userId: string) {
   const supabase = await createClient();
@@ -20,13 +21,13 @@ async function getRecoveryData(userId: string) {
       .limit(1)
       .maybeSingle(),
 
-    // Recovery trend (last 7 days)
+    // Recovery trend (last 30 days)
     supabase
       .from('whoop_recovery')
       .select('*')
       .eq('user_id', userId)
       .order('date', { ascending: false })
-      .limit(7),
+      .limit(30),
 
     // Profile for baselines
     supabase
@@ -80,6 +81,16 @@ export default async function RecoveryPage() {
         recoveryData.trend.reduce((sum, r) => sum + (r.resting_hr || 0), 0) / recoveryData.trend.length
       )
     : 0;
+
+  // Prepare chart data: reverse to ascending
+  const recoveryChartData: RecoveryTrendDataPoint[] = [...recoveryData.trend]
+    .reverse()
+    .map((r) => ({
+      date: formatDate(r.date, 'MMM d'),
+      recovery: r.recovery_score || 0,
+      hrv: r.hrv_rmssd || null,
+      rhr: r.resting_hr || null,
+    }));
 
   return (
     <div className="space-y-6">
@@ -182,38 +193,8 @@ export default async function RecoveryPage() {
               <CardTitle>Recent Recovery Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              {recoveryData.trend.length > 0 ? (
-                <div className="space-y-3">
-                  {recoveryData.trend.map((recovery) => (
-                    <div
-                      key={recovery.id}
-                      className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`h-3 w-3 rounded-full ${
-                            recovery.traffic_light === 'green'
-                              ? 'bg-green-500'
-                              : recovery.traffic_light === 'yellow'
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
-                          }`}
-                        />
-                        <div>
-                          <div className="text-sm font-medium">
-                            {formatDate(recovery.date)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            HRV: {recovery.hrv_rmssd || '--'} ms, RHR: {recovery.resting_hr || '--'} bpm
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold">{recovery.recovery_score}%</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {recoveryChartData.length > 0 ? (
+                <RecoveryTrendChart data={recoveryChartData} />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No recovery trend data available yet

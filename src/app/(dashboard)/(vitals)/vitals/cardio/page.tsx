@@ -7,6 +7,7 @@ import { Vo2EntryForm } from '@/components/dashboard/vo2-entry-form';
 import { Activity, Heart, TrendingUp, TrendingDown, Minus, Zap } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { cn } from '@/lib/utils/cn';
+import { Vo2MaxChart, type Vo2MaxDataPoint } from '@/components/charts/vo2-max-chart';
 
 interface CardioData {
   // VO2 Max
@@ -139,6 +140,15 @@ export default async function CardioPage() {
   const hiitTarget = 30;
   const hiitProgress = Math.min((hiitMinutes / hiitTarget) * 100, 100);
 
+  // Prepare VO2 chart data: reverse to ascending
+  const vo2ChartData: Vo2MaxDataPoint[] = [...cardio.vo2History]
+    .reverse()
+    .map((entry) => ({
+      date: formatDate(entry.date, 'MMM d'),
+      value: entry.value,
+      source: entry.source,
+    }));
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -203,28 +213,11 @@ export default async function CardioPage() {
                 </p>
               )}
 
-              {/* VO2 History */}
-              {cardio.vo2History.length > 1 && (
+              {/* VO2 History Chart */}
+              {vo2ChartData.length > 1 && (
                 <div className="pt-4 border-t">
-                  <p className="text-sm font-medium mb-2">Recent History</p>
-                  <div className="space-y-2">
-                    {cardio.vo2History.slice(0, 5).map((entry, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span className="text-muted-foreground">
-                          {formatDate(entry.date)}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{entry.value}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {formatSource(entry.source)}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm font-medium mb-2">VO2 Max Trend</p>
+                  <Vo2MaxChart data={vo2ChartData} />
                 </div>
               )}
             </div>

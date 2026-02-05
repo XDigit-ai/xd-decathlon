@@ -8,6 +8,8 @@ import { MeasurementsForm } from '@/components/body/measurements-form';
 import { DexaForm } from '@/components/body/dexa-form';
 import { formatDate } from '@/lib/utils/date';
 import { formatWeight, formatPercentage } from '@/lib/utils/format';
+import { calculate7DayAverage, detectTrend } from '@/lib/calculations/rolling-average';
+import { WeightTrendChart, type WeightTrendDataPoint } from '@/components/charts/weight-trend-chart';
 
 interface WeightEntry {
   id: string;
@@ -85,6 +87,21 @@ export default async function BodyCompositionPage() {
 
   const { weight, measurements, dexaScans } = await getBodyData(user.id);
 
+  // Prepare chart data: reverse to ascending order, compute rolling averages
+  const ascending = [...weight].reverse();
+  const rollingData = calculate7DayAverage(
+    ascending.map((w) => ({ date: w.date, value: w.weight_kg }))
+  );
+  const avgMap = new Map(rollingData.map((r) => [formatDate(r.date, 'yyyy-MM-dd'), r.average]));
+  const weightTrend = detectTrend(rollingData);
+
+  const weightChartData: WeightTrendDataPoint[] = ascending.map((w) => ({
+    date: formatDate(w.date, 'MMM d'),
+    weight: w.weight_kg,
+    bodyFat: w.body_fat_pct,
+    avg7d: avgMap.get(w.date) ?? null,
+  }));
+
   return (
     <div className="space-y-6">
       <div>
@@ -147,6 +164,18 @@ export default async function BodyCompositionPage() {
               </Card>
             )}
           </div>
+
+          {weightChartData.length > 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Weight Trend</CardTitle>
+                <CardDescription>Last 30 days with 7-day rolling average</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WeightTrendChart data={weightChartData} trend={weightTrend} />
+              </CardContent>
+            </Card>
+          )}
 
           <WeightHistory entries={weight} />
         </TabsContent>

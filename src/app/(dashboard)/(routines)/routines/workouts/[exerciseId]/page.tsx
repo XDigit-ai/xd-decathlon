@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, Calendar, Dumbbell } from 'lucide-react';
+import { OneRmChart, type OneRmDataPoint } from '@/components/charts/one-rm-chart';
 
 interface ExerciseDetailPageProps {
   params: Promise<{
@@ -164,6 +165,21 @@ export default async function ExerciseDetailPage({ params }: ExerciseDetailPageP
     notFound();
   }
 
+  // Prepare 1RM chart data: reverse to ascending, compute PR flags
+  const ascending1RM = [...exerciseData.oneRMHistory].reverse();
+  let runningMax = 0;
+  const oneRmChartData: OneRmDataPoint[] = ascending1RM.map((record) => {
+    const isPR = record.estimated_1rm_kg > runningMax;
+    if (isPR) runningMax = record.estimated_1rm_kg;
+    return {
+      date: formatDate(record.date),
+      oneRm: record.estimated_1rm_kg,
+      isPR,
+      sourceWeight: record.source_weight_kg,
+      sourceReps: record.source_reps,
+    };
+  });
+
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -215,31 +231,7 @@ export default async function ExerciseDetailPage({ params }: ExerciseDetailPageP
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {exerciseData.oneRMHistory.map((record, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{formatDate(record.date)}</p>
-                        {record.source_weight_kg && record.source_reps && (
-                          <p className="text-xs text-muted-foreground">
-                            from {record.source_weight_kg}kg × {record.source_reps} reps
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-primary">
-                        {record.estimated_1rm_kg.toFixed(1)} kg
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <OneRmChart data={oneRmChartData} exerciseTitle={exerciseData.title} />
             )}
           </Suspense>
         </CardContent>
