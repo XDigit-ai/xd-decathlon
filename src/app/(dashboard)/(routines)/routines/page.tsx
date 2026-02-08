@@ -29,7 +29,7 @@ async function getThisWeekData(userId: string) {
   const todayStr = now.toISOString().split('T')[0];
   const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const [workoutsResult, wellnessResult, recoveryResult, weightResult] = await Promise.all([
+  const [workoutsResult, wellnessResult, recoveryResult, weightResult, profileResult] = await Promise.all([
     // This week's workouts
     supabase
       .from('hevy_workouts')
@@ -60,6 +60,12 @@ async function getThisWeekData(userId: string) {
       .eq('user_id', userId)
       .order('date', { ascending: false })
       .limit(1)
+      .maybeSingle(),
+    // Profile for program start date
+    supabase
+      .from('profiles')
+      .select('program_start_date')
+      .eq('id', userId)
       .maybeSingle(),
   ]);
 
@@ -95,6 +101,7 @@ async function getThisWeekData(userId: string) {
     recoveryScore: recoveryResult.data?.recovery_score ?? null,
     trafficLight: (recoveryResult.data?.traffic_light ?? 'green') as 'green' | 'yellow' | 'red',
     latestWeight: weightResult.data?.weight_kg ?? null,
+    programStartDate: profileResult.data?.program_start_date ?? null,
   };
 }
 
@@ -152,7 +159,7 @@ export default async function ThisWeekPage() {
       </Card>
 
       {/* Today's Plan */}
-      <TodaysPlan />
+      <TodaysPlan programStartDate={data.programStartDate ? new Date(data.programStartDate) : undefined} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

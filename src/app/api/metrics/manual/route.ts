@@ -70,12 +70,16 @@ export async function POST(request: NextRequest) {
 
     if (type === 'wellness') {
       // Validate wellness data
-      const { energy, mood, soreness, motivation, stress, notes, date } = data;
+      const { energy, mood, soreness, motivation, stress, elbow_pain, pain_notes, protein_g, notes, date } = data;
 
       // At least one wellness metric should be provided
-      if (!energy && !mood && !soreness && !motivation && !stress) {
+      const hasWellnessValue = [energy, mood, soreness, motivation, stress].some(v => v);
+      const hasElbowPain = typeof elbow_pain === 'number' && elbow_pain >= 0;
+      const hasProtein = typeof protein_g === 'number' && protein_g > 0;
+
+      if (!hasWellnessValue && !hasElbowPain && !hasProtein) {
         return NextResponse.json(
-          { error: 'At least one wellness metric is required' },
+          { error: 'At least one wellness metric, pain level, or protein value is required' },
           { status: 400 }
         );
       }
@@ -106,6 +110,24 @@ export async function POST(request: NextRequest) {
         if (motivation) wellnessData.motivation = validateRange(motivation, 'motivation');
         if (stress) wellnessData.stress = validateRange(stress, 'stress');
         if (notes) wellnessData.notes = notes;
+
+        if (elbow_pain !== undefined && elbow_pain !== null) {
+          const painNum = parseInt(elbow_pain);
+          if (isNaN(painNum) || painNum < 0 || painNum > 10) {
+            throw new Error('elbow_pain must be between 0 and 10');
+          }
+          wellnessData.elbow_pain = painNum;
+        }
+
+        if (protein_g !== undefined && protein_g !== null) {
+          const proteinNum = parseFloat(protein_g);
+          if (isNaN(proteinNum) || proteinNum < 0 || proteinNum > 500) {
+            throw new Error('protein_g must be between 0 and 500');
+          }
+          wellnessData.protein_g = proteinNum;
+        }
+
+        if (pain_notes) wellnessData.pain_notes = pain_notes;
 
         // Insert or update wellness entry
         const { data: wellnessEntry, error } = await supabase

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Scale, Heart, Activity, Star } from "lucide-react";
+import { Scale, Heart, Activity, Star, AlertTriangle, Beef } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 interface QuickAddProps {
@@ -25,6 +25,9 @@ export function QuickAdd({ className }: QuickAddProps) {
     motivation: 0,
     stress: 0,
   });
+  const [elbowPain, setElbowPain] = useState<number>(0);
+  const [painNotes, setPainNotes] = useState("");
+  const [proteinG, setProteinG] = useState("");
   const [vo2max, setVo2max] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -71,7 +74,7 @@ export function QuickAdd({ className }: QuickAddProps) {
   };
 
   const handleWellnessSubmit = async () => {
-    const hasAnyValue = Object.values(wellness).some((v) => v > 0);
+    const hasAnyValue = Object.values(wellness).some((v) => v > 0) || elbowPain > 0 || proteinG;
     if (!hasAnyValue) return;
 
     setLoading("wellness");
@@ -82,6 +85,9 @@ export function QuickAdd({ className }: QuickAddProps) {
         body: JSON.stringify({
           type: "wellness",
           ...wellness,
+          elbow_pain: elbowPain > 0 ? elbowPain : null,
+          pain_notes: elbowPain > 0 ? painNotes || null : null,
+          protein_g: proteinG ? parseFloat(proteinG) : null,
         }),
       });
 
@@ -90,6 +96,9 @@ export function QuickAdd({ className }: QuickAddProps) {
       if (response.ok) {
         showMessage("success", "Wellness saved successfully");
         setWellness({ energy: 0, mood: 0, soreness: 0, motivation: 0, stress: 0 });
+        setElbowPain(0);
+        setPainNotes("");
+        setProteinG("");
         router.refresh();
       } else {
         showMessage("error", data.error || "Failed to save wellness");
@@ -189,6 +198,28 @@ export function QuickAdd({ className }: QuickAddProps) {
 
         <Separator />
 
+        {/* Protein Intake */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Beef className="h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="protein">Protein Intake</Label>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              id="protein"
+              type="number"
+              step="1"
+              placeholder="grams"
+              value={proteinG}
+              onChange={(e) => setProteinG(e.target.value)}
+              disabled={loading === "wellness"}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">Target: 150g</p>
+        </div>
+
+        <Separator />
+
         {/* Wellness ratings */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -224,10 +255,70 @@ export function QuickAdd({ className }: QuickAddProps) {
               </div>
             ))}
           </div>
+
+          {/* Elbow Pain */}
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Elbow Pain</span>
+              </div>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  elbowPain === 0 && "text-green-600",
+                  elbowPain >= 1 && elbowPain <= 3 && "text-green-600",
+                  elbowPain >= 4 && elbowPain <= 5 && "text-amber-500",
+                  elbowPain >= 6 && elbowPain <= 7 && "text-orange-500",
+                  elbowPain >= 8 && "text-red-600"
+                )}
+              >
+                {elbowPain === 0 ? "None" : `${elbowPain}/10`}
+              </span>
+            </div>
+            <div className="flex gap-1">
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setElbowPain(value)}
+                  disabled={loading === "wellness"}
+                  className={cn(
+                    "flex h-8 flex-1 items-center justify-center rounded border border-input text-xs transition-colors disabled:opacity-50",
+                    elbowPain === value
+                      ? value === 0
+                        ? "bg-green-600 text-white"
+                        : value <= 3
+                          ? "bg-green-600 text-white"
+                          : value <= 5
+                            ? "bg-amber-500 text-white"
+                            : value <= 7
+                              ? "bg-orange-500 text-white"
+                              : "bg-red-600 text-white"
+                      : "hover:bg-accent"
+                  )}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            {elbowPain > 0 && (
+              <Input
+                type="text"
+                placeholder="Pain notes (optional)"
+                value={painNotes}
+                onChange={(e) => setPainNotes(e.target.value)}
+                disabled={loading === "wellness"}
+              />
+            )}
+          </div>
+
           <Button
             onClick={handleWellnessSubmit}
             className="w-full"
-            disabled={Object.values(wellness).every((v) => v === 0) || loading === "wellness"}
+            disabled={
+              (Object.values(wellness).every((v) => v === 0) && elbowPain === 0 && !proteinG) ||
+              loading === "wellness"
+            }
           >
             {loading === "wellness" ? "Saving..." : "Save Wellness"}
           </Button>

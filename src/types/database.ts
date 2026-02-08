@@ -52,6 +52,8 @@ export interface Profile {
   resting_hr: number;
   hrv_baseline: number;
   max_hr: number;
+  program_start_date: string | null;
+  protein_target_g: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -119,6 +121,29 @@ export interface BodyMeasurement {
 
 export type BodyMeasurementInsert = Omit<BodyMeasurement, 'id' | 'created_at'>;
 export type BodyMeasurementUpdate = Partial<BodyMeasurementInsert>;
+
+// ============================================================================
+// DAILY WELLNESS
+// ============================================================================
+
+export interface DailyWellness {
+  id: string;
+  user_id: string;
+  date: string;
+  energy: number | null;
+  mood: number | null;
+  soreness: number | null;
+  motivation: number | null;
+  stress: number | null;
+  elbow_pain: number | null;
+  pain_notes: string | null;
+  protein_g: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type DailyWellnessInsert = Omit<DailyWellness, 'id' | 'created_at'>;
+export type DailyWellnessUpdate = Partial<DailyWellnessInsert>;
 
 export interface DexaScan {
   id: string;

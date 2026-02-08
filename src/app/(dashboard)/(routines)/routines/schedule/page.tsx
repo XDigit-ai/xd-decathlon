@@ -1,5 +1,6 @@
+import { createClient } from '@/lib/supabase/server';
 import { getAuthUser } from '@/lib/supabase/auth';
-import { TRAINING_PLAN, type TrainingDay } from '@/lib/training-plan';
+import { getWeekSchedule, getCurrentPhase, type TrainingDay } from '@/lib/training-plan';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
@@ -8,8 +9,9 @@ import { cn } from '@/lib/utils/cn';
 const typeBadge: Record<TrainingDay['type'], { label: string; className: string }> = {
   strength: { label: 'Strength', className: 'bg-blue-500/15 text-blue-700 dark:text-blue-400' },
   hiit: { label: 'HIIT', className: 'bg-orange-500/15 text-orange-700 dark:text-orange-400' },
-  zone2: { label: 'Zone 2', className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
-  recovery: { label: 'Recovery', className: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+  cardio: { label: 'Zone 2', className: 'bg-teal-500/15 text-teal-700 dark:text-teal-400' },
+  mobility: { label: 'Mobility', className: 'bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+  rest: { label: 'Rest', className: 'bg-gray-500/15 text-gray-700 dark:text-gray-400' },
 };
 
 function getTodayIndex(): number {
@@ -18,20 +20,33 @@ function getTodayIndex(): number {
 }
 
 export default async function SchedulePage() {
-  await getAuthUser();
+  const user = await getAuthUser();
+  const supabase = await createClient();
   const todayIndex = getTodayIndex();
+
+  const profileResult = await supabase
+    .from('profiles')
+    .select('program_start_date')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const programStartDate = profileResult.data?.program_start_date
+    ? new Date(profileResult.data.program_start_date)
+    : new Date('2025-02-03'); // fallback
+  const phase = getCurrentPhase(programStartDate);
+  const schedule = getWeekSchedule(phase);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Training Schedule</h1>
         <p className="mt-2 text-muted-foreground">
-          Your weekly program based on your training plan
+          Your weekly program — Phase {phase} (Weeks {phase === 1 ? '1-6' : '7-12'})
         </p>
       </div>
 
       <div className="space-y-4">
-        {TRAINING_PLAN.map((day) => {
+        {schedule.map((day: TrainingDay) => {
           const badge = typeBadge[day.type];
           const isToday = day.dayIndex === todayIndex;
 
@@ -88,13 +103,8 @@ export default async function SchedulePage() {
                         <tr className="border-b text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           <th className="pb-2 pr-2">#</th>
                           <th className="pb-2 pr-2">Exercise</th>
-                          <th className="pb-2 pr-2">Sets × Reps</th>
-                          {day.type !== 'recovery' && (
-                            <>
-                              <th className="pb-2 pr-2">RIR</th>
-                              <th className="pb-2">Rest</th>
-                            </>
-                          )}
+                          <th className="pb-2 pr-2">Sets</th>
+                          <th className="pb-2">Notes</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -104,21 +114,11 @@ export default async function SchedulePage() {
                             className="border-b border-border/50 last:border-0"
                           >
                             <td className="py-2 pr-2 text-muted-foreground">{i + 1}</td>
-                            <td className="py-2 pr-2 font-medium">
-                              {ex.name}
-                              {ex.notes && (
-                                <span className="ml-1 text-xs text-muted-foreground">
-                                  ({ex.notes})
-                                </span>
-                              )}
-                            </td>
+                            <td className="py-2 pr-2 font-medium">{ex.name}</td>
                             <td className="py-2 pr-2">{ex.sets}</td>
-                            {day.type !== 'recovery' && (
-                              <>
-                                <td className="py-2 pr-2">{ex.rir}</td>
-                                <td className="py-2">{ex.rest}</td>
-                              </>
-                            )}
+                            <td className="py-2 text-xs text-muted-foreground max-w-[300px]">
+                              {ex.notes || '—'}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -126,7 +126,37 @@ export default async function SchedulePage() {
                   </div>
                 )}
 
-                {/* Notes (HIIT / Zone 2) */}
+                {/* HR Zone Targets */}
+                {day.hrZones && day.hrZones.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      HR Zone Targets
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      {day.hrZones.map((hz) => (
+                        <div key={hz.zone} className="rounded-lg bg-muted/50 p-2 text-center">
+                          <p className="text-xs text-muted-foreground">Zone {hz.zone}</p>
+                          <p className="text-sm font-semibold">{hz.targetMinutes} min</p>
+                          <p className="text-xs text-muted-foreground">{hz.bpmRange} bpm</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Modality Options */}
+                {day.modality && day.modality.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="text-xs text-muted-foreground">Options:</span>
+                    {day.modality.map((m) => (
+                      <span key={m} className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Notes (Zone 2 / Rest) */}
                 {day.notes && day.exercises.length === 0 && (
                   <div className="rounded-lg bg-muted/50 p-4">
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -138,7 +168,7 @@ export default async function SchedulePage() {
                   </div>
                 )}
 
-                {/* Recovery notes below exercises */}
+                {/* Notes below exercises if present */}
                 {day.notes && day.exercises.length > 0 && (
                   <p className="text-sm text-muted-foreground italic">{day.notes}</p>
                 )}
